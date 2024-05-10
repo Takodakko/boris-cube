@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { ref, StyleValue } from 'vue';
   // import Side from './components/Side.vue'
   import Square from './components/Square.vue'
 
@@ -124,7 +124,7 @@
   const leftMid: [string[], number[], string[]] = [hidari, naka, skip];
   const leftBottom: [string[], number[], string[]] = [hidari, shita, bottomSpinLeft];
 
-  const cubeFaceStyling = {
+  const cubeFaceStyling: StyleValue = {
     'display': 'flex', 
     'flex-direction': 'row', 
     'border-color': 'black', 
