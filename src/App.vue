@@ -32,19 +32,18 @@
   const currentGameState = ref(initialGameState);
 
   function rotateRow(arrow: [string[], number[], string[]]) {
-    const cube = currentGameState.value;
+    const cube = {...currentGameState.value};
     const spillOver: string[] = [];
     
       const [num1, num2, num3] = arrow[1];
       const [side1, side2, side3, side4] = arrow[0];
-      const notFrontFaceDirections = arrow[2];
-      // const spinClockwise = [0, 2, 8, 6, 1, 5, 7, 3];
-  // const spinCounterClockwise = [0, 6, 8, 2, 1, 3, 7, 5];
-      if (notFrontFaceDirections[0] !== 'skip') {
-        const face = notFrontFaceDirections[0];
+      const rotatingFaceDirections = arrow[2];
+      
+      if (rotatingFaceDirections[0] !== 'skip') {
+        const face = rotatingFaceDirections[0];
         const saveEven = cube[face][0];
         const saveOdd = cube[face][1];
-        if (notFrontFaceDirections[1] === 'spinClockwise') {
+        if (rotatingFaceDirections[1] === 'spinClockwise') {
           cube[face][0] = cube[face][6];
           cube[face][6] = cube[face][8];
           cube[face][8] = cube[face][2];
@@ -65,28 +64,28 @@
         }
       }
 
-      // spillOver.push(cube[side1][num1], cube[side1][num2], cube[side1][num3]);
-      spillOver.push(...cube[side1]);
-      // cube[side1] = [cube[side2][num1], cube[side2][num2], cube[side2][num3]];
-      // cube[side2] = [cube[side3][num1], cube[side3][num2], cube[side3][num3]];
-      // cube[side3] = [cube[side4][num1], cube[side4][num2], cube[side4][num3]];
-      // cube[side1] = [...cube[side2]];
-      // cube[side2] = [...cube[side3]];
-      // cube[side3] = [...cube[side4]];
+      spillOver.push(cube[side1][num1], cube[side1][num2], cube[side1][num3]);
+      
       cube[side1][num1] = cube[side2][num1];
       cube[side1][num2] = cube[side2][num2];
       cube[side1][num3] = cube[side2][num3];
+
       cube[side2][num1] = cube[side3][num1];
       cube[side2][num2] = cube[side3][num2];
       cube[side2][num3] = cube[side3][num3];
+
       cube[side3][num1] = cube[side4][num1];
       cube[side3][num2] = cube[side4][num2];
       cube[side3][num3] = cube[side4][num3];
-      cube[side4] = [...spillOver];
+
+      cube[side4][num1] = spillOver[0];
+      cube[side4][num2] = spillOver[1];
+      cube[side4][num3] = spillOver[2];
 
       currentGameState.value = {...cube};
     
-  }
+  };
+
   const top = ['f', 'at', 'af', 't'];
   const bottom = ['f', 't', 'af', 'at'];
   const hidari = ['f', 'al', 'af', 'l'];
@@ -154,31 +153,38 @@
   <button @click="rotateRow(bottomMid)">Spin Middle Down</button>
   <button @click="rotateRow(bottomRight)">Spin Right Down</button>
   <br>
-  FRONT
-  <div :style="cubeFaceStyling">
-    <Square v-for="color in currentGameState.f" :color="color"/><br>
-  </div>
-  BACK
-  <div :style="cubeFaceStyling">
-    <Square v-for="color in currentGameState.af" :color="color"/><br>
-  </div>
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
   TOP
   <div :style="cubeFaceStyling">
-    <Square v-for="color in currentGameState.t" :color="color"/><br>
+    <Square v-for="(color, index) in currentGameState.t" :color="color" :key="'t-' + index"/><br>
   </div>
-  BOTTOM
-  <div :style="cubeFaceStyling">
-    <Square v-for="color in currentGameState.at" :color="color"/><br>
-  </div>
+</div>
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
   LEFT
   <div :style="cubeFaceStyling">
-    <Square v-for="color in currentGameState.l" :color="color"/><br>
+    <Square v-for="(color, index) in currentGameState.l" :color="color" :key="'l-' + index"/><br>
+  </div>
+  FRONT
+  <div :style="cubeFaceStyling">
+    <Square v-for="(color, index) in currentGameState.f" :color="color" :key="'f-' + index"/><br>
   </div>
   RIGHT
   <div :style="cubeFaceStyling">
-    <Square v-for="color in currentGameState.al" :color="color"/>
+    <Square v-for="(color, index) in currentGameState.al" :color="color" :key="'al-' + index"/>
   </div>
-  
+</div>
+<div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+  BOTTOM
+  <div :style="cubeFaceStyling">
+    <Square v-for="(color, index) in currentGameState.at" :color="color" :key="'at-' + index"/><br>
+  </div>
+</div>
+<div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+  BACK
+  <div :style="cubeFaceStyling">
+    <Square v-for="(color, index) in currentGameState.af" :color="color" :key="'af-' + index"/><br>
+  </div>
+</div>
 </template>
 
 <style scoped>
