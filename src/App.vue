@@ -1,29 +1,25 @@
 <script setup lang="ts">
   import { ref, StyleValue } from 'vue';
-  // import Side from './components/Side.vue'
   import Square from './components/Square.vue'
 
   function assignColors() {
-    const listOfColors: Array<[string, number]> = [['red', 9], ['blue', 9], ['yellow', 9], ['orange', 9], ['green', 9], ['purple', 9]];
-    const listOfSelectedColors: string[] = [];
-    while (listOfSelectedColors.length < 54) {
-      const currentIndex = Math.floor(Math.random() * listOfColors.length);
-      
-      const currentSpace: [string, number] = listOfColors[currentIndex];
-      const currentColor: string = currentSpace[0];
-      currentSpace[1] = currentSpace[1] - 1;
-      if (currentSpace[1] <= 0) {
-        listOfColors.splice(currentIndex, 1);
-      }
-      listOfSelectedColors.push(currentColor);
+    const listOfColors: Array<string> = ['red', 'blue', 'yellow', 'white', 'green', 'purple'];
+    const listOfSelectedColors: string[][] = [];
+    let repeat = 5;
+    while (repeat >= 0) {
+      const newColorSet: string[] = new Array(9);
+      newColorSet.fill(listOfColors[repeat]);
+      listOfSelectedColors.push(newColorSet);
+      repeat -= 1;
     }
+    
     const newCube: Record<string, string[]> = {
-      f: listOfSelectedColors.slice(0, 9),
-      af: listOfSelectedColors.slice(9, 18),
-      l: listOfSelectedColors.slice(18, 27),
-      al: listOfSelectedColors.slice(27, 36),
-      t: listOfSelectedColors.slice(36, 45),
-      at: listOfSelectedColors.slice(45, 54),
+      f: [...listOfSelectedColors[0]],
+      b: [...listOfSelectedColors[1]],
+      l: [...listOfSelectedColors[2]],
+      r: [...listOfSelectedColors[3]],
+      u: [...listOfSelectedColors[4]],
+      d: [...listOfSelectedColors[5]],
     };
     return newCube;
   }
@@ -86,10 +82,10 @@
     
   };
 
-  const top = ['f', 'at', 'af', 't'];
-  const bottom = ['f', 't', 'af', 'at'];
-  const hidari = ['f', 'al', 'af', 'l'];
-  const migi = ['f', 'l', 'af', 'al'];
+  const top = ['f', 'd', 'b', 'u'];
+  const bottom = ['f', 'u', 'b', 'd'];
+  const hidari = ['f', 'r', 'b', 'l'];
+  const migi = ['f', 'l', 'b', 'r'];
 
   const left = [0, 3, 6];
   const mid = [1, 4, 7];
@@ -100,12 +96,12 @@
   
   const leftSpinUp: string[] = ['l', 'spinCounterClockwise'];
   const leftSpinDown: string[] = ['l', 'spinClockwise'];
-  const rightSpinUp: string[] = ['al', 'spinClockwise'];
-  const rightSpinDown: string[] = ['al', 'spinCounterClockwise'];
-  const topSpinLeft: string[] = ['t', 'spinClockwise'];
-  const topSpinRight: string[] = ['t', 'spinCounterClockwise'];
-  const bottomSpinLeft: string[] = ['at', 'spinCounterClockwise'];
-  const bottomSpinRight: string[] = ['at', 'spinClockwise'];
+  const rightSpinUp: string[] = ['r', 'spinClockwise'];
+  const rightSpinDown: string[] = ['r', 'spinCounterClockwise'];
+  const topSpinLeft: string[] = ['u', 'spinClockwise'];
+  const topSpinRight: string[] = ['u', 'spinCounterClockwise'];
+  const bottomSpinLeft: string[] = ['d', 'spinCounterClockwise'];
+  const bottomSpinRight: string[] = ['d', 'spinClockwise'];
   const skip: string[] = ['skip', 'skip'];
 
   const topLeft: [string[], number[], string[]] = [top, left, leftSpinUp];
@@ -124,6 +120,30 @@
   const leftMid: [string[], number[], string[]] = [hidari, naka, skip];
   const leftBottom: [string[], number[], string[]] = [hidari, shita, bottomSpinLeft];
 
+  const arrowSet = [
+  topLeft,
+  topMid,
+  topRight,
+  leftTop,
+  leftMid,
+  leftBottom,
+  rightBottom,
+  rightMid,
+  rightTop,
+  bottomLeft,
+  bottomMid,
+  bottomRight,
+  ];
+
+  function scramble() {
+    let repeat = 20;
+    while (repeat > 0) {
+      const randomNumber = Math.floor(Math.random() * arrowSet.length);
+      rotateRow(arrowSet[randomNumber]);
+      repeat -= 1;
+    }
+  };
+
   const cubeFaceStyling: StyleValue = {
     'display': 'flex', 
     'flex-direction': 'row', 
@@ -138,6 +158,7 @@
 </script>
 
 <template>
+  <button @click="scramble">Scramble</button><br>
   <button @click="rotateRow(topLeft)">Spin Left Up</button>
   <button @click="rotateRow(topMid)">Spin Middle Up</button>
   <button @click="rotateRow(topRight)">Spin Right Up</button>
@@ -154,9 +175,9 @@
   <button @click="rotateRow(bottomRight)">Spin Right Down</button>
   <br>
   <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-  TOP
+  UP
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.t" :color="color" :key="'t-' + index"/><br>
+    <Square v-for="(color, index) in currentGameState.u" :color="color" :key="'u-' + index"/><br>
   </div>
 </div>
   <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
@@ -170,19 +191,19 @@
   </div>
   RIGHT
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.al" :color="color" :key="'al-' + index"/>
+    <Square v-for="(color, index) in currentGameState.r" :color="color" :key="'r-' + index"/>
   </div>
 </div>
 <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-  BOTTOM
+  DOWN
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.at" :color="color" :key="'at-' + index"/><br>
+    <Square v-for="(color, index) in currentGameState.d" :color="color" :key="'d-' + index"/><br>
   </div>
 </div>
 <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
   BACK
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.af" :color="color" :key="'af-' + index"/><br>
+    <Square v-for="(color, index) in currentGameState.b" :color="color" :key="'b-' + index"/><br>
   </div>
 </div>
 </template>
