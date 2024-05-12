@@ -2,6 +2,19 @@
   import { ref, StyleValue } from 'vue';
   import Square from './components/Square.vue'
 
+  interface IArrow extends Array<string[] | number[]> {
+  0: Array<cubeFaceLabels>; 
+  1: number[]; 
+  2: IRotatingFaceInstructions;
+  }
+
+  type cubeFaceLabels = 'f' | 'b' | 'l' | 'r' | 'u' | 'd';
+
+  interface IRotatingFaceInstructions extends Array<string> {
+    0: cubeFaceLabels | 'skip';
+    1: 'spinClockwise' | 'spinCounterClockwise' | 'skip';
+  }
+
   function assignColors() {
     const listOfColors: Array<string> = ['red', 'blue', 'yellow', 'white', 'green', 'purple'];
     const listOfSelectedColors: string[][] = [];
@@ -13,7 +26,7 @@
       repeat -= 1;
     }
     
-    const newCube: Record<string, string[]> = {
+    const newCube: Record<cubeFaceLabels, string[]> = {
       f: [...listOfSelectedColors[0]],
       b: [...listOfSelectedColors[1]],
       l: [...listOfSelectedColors[2]],
@@ -27,7 +40,7 @@
   const initialGameState = assignColors();
   const currentGameState = ref(initialGameState);
 
-  function rotateRow(arrow: [string[], number[], string[]]) {
+  function rotateRow(arrow: IArrow) {
     const cube = {...currentGameState.value};
     const spillOver: string[] = [];
     
@@ -82,10 +95,10 @@
     
   };
 
-  const top = ['f', 'd', 'b', 'u'];
-  const bottom = ['f', 'u', 'b', 'd'];
-  const hidari = ['f', 'r', 'b', 'l'];
-  const migi = ['f', 'l', 'b', 'r'];
+  const top: cubeFaceLabels[] = ['f', 'd', 'b', 'u'];
+  const bottom: cubeFaceLabels[] = ['f', 'u', 'b', 'd'];
+  const hidari: cubeFaceLabels[] = ['f', 'r', 'b', 'l'];
+  const migi: cubeFaceLabels[] = ['f', 'l', 'b', 'r'];
 
   const left = [0, 3, 6];
   const mid = [1, 4, 7];
@@ -94,31 +107,31 @@
   const naka = [3, 4, 5];
   const shita = [6, 7, 8];
   
-  const leftSpinUp: string[] = ['l', 'spinCounterClockwise'];
-  const leftSpinDown: string[] = ['l', 'spinClockwise'];
-  const rightSpinUp: string[] = ['r', 'spinClockwise'];
-  const rightSpinDown: string[] = ['r', 'spinCounterClockwise'];
-  const topSpinLeft: string[] = ['u', 'spinClockwise'];
-  const topSpinRight: string[] = ['u', 'spinCounterClockwise'];
-  const bottomSpinLeft: string[] = ['d', 'spinCounterClockwise'];
-  const bottomSpinRight: string[] = ['d', 'spinClockwise'];
-  const skip: string[] = ['skip', 'skip'];
+  const leftSpinUp: IRotatingFaceInstructions = ['l', 'spinCounterClockwise'];
+  const leftSpinDown: IRotatingFaceInstructions = ['l', 'spinClockwise'];
+  const rightSpinUp: IRotatingFaceInstructions = ['r', 'spinClockwise'];
+  const rightSpinDown: IRotatingFaceInstructions = ['r', 'spinCounterClockwise'];
+  const topSpinLeft: IRotatingFaceInstructions = ['u', 'spinClockwise'];
+  const topSpinRight: IRotatingFaceInstructions = ['u', 'spinCounterClockwise'];
+  const bottomSpinLeft: IRotatingFaceInstructions = ['d', 'spinCounterClockwise'];
+  const bottomSpinRight: IRotatingFaceInstructions = ['d', 'spinClockwise'];
+  const skip: IRotatingFaceInstructions = ['skip', 'skip'];
 
-  const topLeft: [string[], number[], string[]] = [top, left, leftSpinUp];
-  const topMid: [string[], number[], string[]] = [top, mid, skip];
-  const topRight: [string[], number[], string[]] = [top, right, rightSpinUp];
+  const topLeft: IArrow = [top, left, leftSpinUp];
+  const topMid: IArrow = [top, mid, skip];
+  const topRight: IArrow = [top, right, rightSpinUp];
 
-  const rightTop: [string[], number[], string[]] = [migi, ue, topSpinRight];
-  const rightMid: [string[], number[], string[]] = [migi, naka, skip];
-  const rightBottom: [string[], number[], string[]] = [migi, shita, bottomSpinRight];
+  const rightTop: IArrow = [migi, ue, topSpinRight];
+  const rightMid: IArrow = [migi, naka, skip];
+  const rightBottom: IArrow = [migi, shita, bottomSpinRight];
 
-  const bottomLeft: [string[], number[], string[]] = [bottom, left, leftSpinDown];
-  const bottomMid: [string[], number[], string[]] = [bottom, mid, skip];
-  const bottomRight: [string[], number[], string[]] = [bottom, right, rightSpinDown];
+  const bottomLeft: IArrow = [bottom, left, leftSpinDown];
+  const bottomMid: IArrow = [bottom, mid, skip];
+  const bottomRight: IArrow = [bottom, right, rightSpinDown];
 
-  const leftTop: [string[], number[], string[]] = [hidari, ue, topSpinLeft];
-  const leftMid: [string[], number[], string[]] = [hidari, naka, skip];
-  const leftBottom: [string[], number[], string[]] = [hidari, shita, bottomSpinLeft];
+  const leftTop: IArrow = [hidari, ue, topSpinLeft];
+  const leftMid: IArrow = [hidari, naka, skip];
+  const leftBottom: IArrow = [hidari, shita, bottomSpinLeft];
 
   const arrowSet = [
   topLeft,
@@ -144,6 +157,13 @@
     }
   };
 
+  function turnWholeCube(arrow1: IArrow, arrow2: IArrow, arrow3: IArrow) {
+    rotateRow(arrow1);
+    rotateRow(arrow2);
+    rotateRow(arrow3);
+  };
+
+
   const cubeFaceStyling: StyleValue = {
     'display': 'flex', 
     'flex-direction': 'row', 
@@ -155,55 +175,92 @@
     'flex-wrap': 'wrap',
     'width': '205px'
   };
+
+  const frontCubeFaceStyling: StyleValue = {
+    'display': 'flex', 
+    'flex-direction': 'row', 
+    'border-color': 'black', 
+    'border': 'solid', 
+    'border-width': '2px', 
+    'padding': '1px', 
+    'margin': '1px',
+    'flex-wrap': 'wrap',
+    'width': '265px'
+  };
+
 </script>
 
 <template>
   <button @click="scramble">Scramble</button><br>
-  <button @click="rotateRow(topLeft)">Spin Left Up</button>
-  <button @click="rotateRow(topMid)">Spin Middle Up</button>
-  <button @click="rotateRow(topRight)">Spin Right Up</button>
-  <br>
-  <button @click="rotateRow(leftTop)">Spin Top to Left</button>
-  <button @click="rotateRow(leftMid)">Spin Middle to Left</button>
-  <button @click="rotateRow(leftBottom)">Spin Bottom to Left</button>
-  <button @click="rotateRow(rightTop)">Spin Top to Right</button>
-  <button @click="rotateRow(rightMid)">Spin Middle to Right</button>
-  <button @click="rotateRow(rightBottom)">Spin Bottom to Right</button>
-  <br>
-  <button @click="rotateRow(bottomLeft)">Spin Left Down</button>
-  <button @click="rotateRow(bottomMid)">Spin Middle Down</button>
-  <button @click="rotateRow(bottomRight)">Spin Right Down</button>
-  <br>
+  FRONT<br>
+  <button @click="turnWholeCube(topLeft, topMid, topRight)">SPIN UP</button><br>
   <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+    <button @click="rotateRow(topLeft)">^</button>
+    <div :style="{'width': '60px'}"></div>
+    <button @click="rotateRow(topMid)">^</button>
+    <div :style="{'width': '60px'}"></div>
+    <button @click="rotateRow(topRight)">^</button>
+    <br>
+  </div>
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+    <button @click="turnWholeCube(leftTop, leftMid, leftBottom)">SPIN LEFT</button><br>
+    <div :style="{display: 'flex', 'flex-direction': 'column'}">
+      <br>
+      <button @click="rotateRow(leftTop)"><</button><br><br>
+      <button @click="rotateRow(leftMid)"><</button><br><br>
+      <button @click="rotateRow(leftBottom)"><</button>
+    </div>
+      <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
+      <div :style="frontCubeFaceStyling">
+        <Square v-for="(color, index) in currentGameState.f" :color="color" :key="'f-' + index" :is-on-front="true"/><br>
+      </div>
+    </div>
+    <div :style="{display: 'flex', 'flex-direction': 'column'}">
+      <br>
+      <button @click="rotateRow(rightTop)">></button><br><br>
+      <button @click="rotateRow(rightMid)">></button><br><br>
+      <button @click="rotateRow(rightBottom)">></button>
+    </div>
+    <button @click="turnWholeCube(rightTop, rightMid, rightBottom)">SPIN RIGHT</button><br>
+  </div>
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+    <button @click="rotateRow(bottomLeft)">v</button>
+    <div :style="{'width': '60px'}"></div>
+    <button @click="rotateRow(bottomMid)">v</button>
+    <div :style="{'width': '60px'}"></div>
+    <button @click="rotateRow(bottomRight)">v</button>
+  </div>
+  <button @click="turnWholeCube(bottomLeft, bottomMid, bottomRight)">SPIN DOWN</button><br>
+  <br>
+  <br>
   UP
-  <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.u" :color="color" :key="'u-' + index"/><br>
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
+    <div :style="cubeFaceStyling">
+      <Square v-for="(color, index) in currentGameState.u" :color="color" :key="'u-' + index" :is-on-front="false"/><br>
+    </div>
   </div>
-</div>
+  
   <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-  LEFT
+    LEFT
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.l" :color="color" :key="'l-' + index"/><br>
+    <Square v-for="(color, index) in currentGameState.l" :color="color" :key="'l-' + index" :is-on-front="false"/><br>
   </div>
-  FRONT
-  <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.f" :color="color" :key="'f-' + index"/><br>
-  </div>
+  
   RIGHT
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.r" :color="color" :key="'r-' + index"/>
+    <Square v-for="(color, index) in currentGameState.r" :color="color" :key="'r-' + index" :is-on-front="false"/>
   </div>
 </div>
 <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
   DOWN
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.d" :color="color" :key="'d-' + index"/><br>
+    <Square v-for="(color, index) in currentGameState.d" :color="color" :key="'d-' + index" :is-on-front="false"/><br>
   </div>
 </div>
 <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
   BACK
   <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.b" :color="color" :key="'b-' + index"/><br>
+    <Square v-for="(color, index) in currentGameState.b" :color="color" :key="'b-' + index" :is-on-front="false"/><br>
   </div>
 </div>
 </template>
