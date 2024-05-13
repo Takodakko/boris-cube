@@ -192,22 +192,21 @@
 
       <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
         <button class="spinleftright" @click="turnWholeCube(leftTop, leftMid, leftBottom)">SPIN LEFT</button><br>
-        <div :style="{display: 'flex', 'flex-direction': 'column'}">
-        <br>
-        <button @click="rotateRow(leftTop)"><</button><br><br>
-        <button @click="rotateRow(leftMid)"><</button><br><br>
-        <button @click="rotateRow(leftBottom)"><</button>
-      </div>
+        <div :style="{display: 'flex', 'flex-direction': 'column', 'justify-content': 'space-around'}">
+          <button @click="rotateRow(leftTop)"><</button>
+          <button @click="rotateRow(leftMid)"><</button>
+          <button @click="rotateRow(leftBottom)"><</button>
+        </div>
         <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
           <div :style="frontCubeFaceStyling">
             <Square v-for="(color, index) in currentGameState.f" :color="color" :key="'f-' + index" :is-on-front="true"/><br>
           </div>
         </div>
 
-        <div :style="{display: 'flex', 'flex-direction': 'column'}">
-          <br>
-          <button @click="rotateRow(rightTop)">></button><br><br>
-          <button @click="rotateRow(rightMid)">></button><br><br>
+        <div :style="{display: 'flex', 'flex-direction': 'column', 'justify-content': 'space-around'}">
+          
+          <button @click="rotateRow(rightTop)">></button>
+          <button @click="rotateRow(rightMid)">></button>
           <button @click="rotateRow(rightBottom)">></button>
         </div>
         <button class="spinleftright" @click="turnWholeCube(rightTop, rightMid, rightBottom)">SPIN RIGHT</button><br>
