@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { ref, StyleValue } from 'vue';
+  import { ref, StyleValue, onMounted, nextTick, Ref } from 'vue';
   import Square from './components/Square.vue'
+  import Explanation from './components/Explanation.vue'
 
   interface IArrow extends Array<string[] | number[]> {
   0: Array<cubeFaceLabels>; 
@@ -40,9 +41,24 @@
   const initialGameState = assignColors();
   const currentGameState = ref(initialGameState);
 
+  const showExplanation = ref({
+    upFace: false,
+    downFace: false,
+    backFace: false,
+    leftFace: false,
+    rightFace: false,
+  });
+
+  const initialfocus: Ref = ref({});
+
+  onMounted(() => {
+    nextTick(() => {
+      initialfocus.value.focus();
+    });
+  });
+
   function rotateRow(arrow: IArrow) {
     const cube = {...currentGameState.value};
-    const spillOver: string[] = [];
     
       const [num1, num2, num3] = arrow[1];
       const [side1, side2, side3, side4] = arrow[0];
@@ -50,49 +66,16 @@
       
       if (rotatingFaceDirections[0] !== 'skip') {
         const face = rotatingFaceDirections[0];
-        const saveEven = cube[face][0];
-        const saveOdd = cube[face][1];
         if (rotatingFaceDirections[1] === 'spinClockwise') {
-          cube[face][0] = cube[face][6];
-          cube[face][6] = cube[face][8];
-          cube[face][8] = cube[face][2];
-          cube[face][2] = saveEven;
-          cube[face][1] = cube[face][3];
-          cube[face][3] = cube[face][7];
-          cube[face][7] = cube[face][5];
-          cube[face][5] = saveOdd;
+          [cube[face][0], cube[face][6], cube[face][8], cube[face][2], cube[face][1], cube[face][3], cube[face][7], cube[face][5]] = [cube[face][6], cube[face][8], cube[face][2], cube[face][0], cube[face][3], cube[face][7], cube[face][5], cube[face][1]];
         } else {
-          cube[face][0] = cube[face][2];
-          cube[face][2] = cube[face][8];
-          cube[face][8] = cube[face][6];
-          cube[face][6] = saveEven;
-          cube[face][1] = cube[face][5];
-          cube[face][5] = cube[face][7];
-          cube[face][7] = cube[face][3];
-          cube[face][3] = saveOdd;
+          [cube[face][0], cube[face][6], cube[face][8], cube[face][2], cube[face][1], cube[face][5], cube[face][7], cube[face][3]] = [cube[face][2], cube[face][0], cube[face][6], cube[face][8], cube[face][5], cube[face][7], cube[face][3], cube[face][1]];
         }
       }
-
-      spillOver.push(cube[side1][num1], cube[side1][num2], cube[side1][num3]);
       
-      cube[side1][num1] = cube[side2][num1];
-      cube[side1][num2] = cube[side2][num2];
-      cube[side1][num3] = cube[side2][num3];
-
-      cube[side2][num1] = cube[side3][num1];
-      cube[side2][num2] = cube[side3][num2];
-      cube[side2][num3] = cube[side3][num3];
-
-      cube[side3][num1] = cube[side4][num1];
-      cube[side3][num2] = cube[side4][num2];
-      cube[side3][num3] = cube[side4][num3];
-
-      cube[side4][num1] = spillOver[0];
-      cube[side4][num2] = spillOver[1];
-      cube[side4][num3] = spillOver[2];
+      [cube[side1][num1], cube[side1][num2], cube[side1][num3], cube[side2][num1], cube[side2][num2], cube[side2][num3], cube[side3][num1], cube[side3][num2], cube[side3][num3], cube[side4][num1], cube[side4][num2], cube[side4][num3]] = [cube[side2][num1], cube[side2][num2], cube[side2][num3], cube[side3][num1], cube[side3][num2], cube[side3][num3], cube[side4][num1], cube[side4][num2], cube[side4][num3], cube[side1][num1], cube[side1][num2], cube[side1][num3]];
 
       currentGameState.value = {...cube};
-    
   };
 
   const top: cubeFaceLabels[] = ['f', 'd', 'b', 'u'];
@@ -173,7 +156,7 @@
     'padding': '1px', 
     'margin': '1px',
     'flex-wrap': 'wrap',
-    'width': '205px'
+    'width': '145px'
   };
 
   const frontCubeFaceStyling: StyleValue = {
@@ -191,80 +174,106 @@
 </script>
 
 <template>
-  <button @click="scramble">Scramble</button><br>
-  FRONT<br>
-  <button @click="turnWholeCube(topLeft, topMid, topRight)">SPIN UP</button><br>
-  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-    <button @click="rotateRow(topLeft)">^</button>
-    <div :style="{'width': '60px'}"></div>
-    <button @click="rotateRow(topMid)">^</button>
-    <div :style="{'width': '60px'}"></div>
-    <button @click="rotateRow(topRight)">^</button>
-    <br>
-  </div>
-  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-    <button @click="turnWholeCube(leftTop, leftMid, leftBottom)">SPIN LEFT</button><br>
-    <div :style="{display: 'flex', 'flex-direction': 'column'}">
-      <br>
-      <button @click="rotateRow(leftTop)"><</button><br><br>
-      <button @click="rotateRow(leftMid)"><</button><br><br>
-      <button @click="rotateRow(leftBottom)"><</button>
-    </div>
-      <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
-      <div :style="frontCubeFaceStyling">
-        <Square v-for="(color, index) in currentGameState.f" :color="color" :key="'f-' + index" :is-on-front="true"/><br>
+  <div :style="{display: 'flex', 'flex-direction': 'row'}" @keydown.left="turnWholeCube(leftTop, leftMid, leftBottom)" @keydown.right="turnWholeCube(rightTop, rightMid, rightBottom)" @keydown.up.prevent="turnWholeCube(topLeft, topMid, topRight)" @keydown.prevent.down="turnWholeCube(bottomLeft, bottomMid, bottomRight)">
+    <div class="screensection">
+      <button ref="initialfocus" @click="scramble">Scramble</button><br>
+      FRONT<br>
+  
+      <button class="spinupdown" @click="turnWholeCube(topLeft, topMid, topRight)">SPIN UP</button><br>
+  
+      <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+        <button @click="rotateRow(topLeft)">^</button>
+        <div :style="{'width': '60px'}"></div>
+        <button @click="rotateRow(topMid)">^</button>
+        <div :style="{'width': '60px'}"></div>
+        <button @click="rotateRow(topRight)">^</button>
+        <br>
       </div>
+
+      <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+        <button class="spinleftright" @click="turnWholeCube(leftTop, leftMid, leftBottom)">SPIN LEFT</button><br>
+        <div :style="{display: 'flex', 'flex-direction': 'column'}">
+        <br>
+        <button @click="rotateRow(leftTop)"><</button><br><br>
+        <button @click="rotateRow(leftMid)"><</button><br><br>
+        <button @click="rotateRow(leftBottom)"><</button>
+      </div>
+        <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
+          <div :style="frontCubeFaceStyling">
+            <Square v-for="(color, index) in currentGameState.f" :color="color" :key="'f-' + index" :is-on-front="true"/><br>
+          </div>
+        </div>
+
+        <div :style="{display: 'flex', 'flex-direction': 'column'}">
+          <br>
+          <button @click="rotateRow(rightTop)">></button><br><br>
+          <button @click="rotateRow(rightMid)">></button><br><br>
+          <button @click="rotateRow(rightBottom)">></button>
+        </div>
+        <button class="spinleftright" @click="turnWholeCube(rightTop, rightMid, rightBottom)">SPIN RIGHT</button><br>
+      </div>
+
+      <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+        <button @click="rotateRow(bottomLeft)">v</button>
+        <div :style="{'width': '60px'}"></div>
+        <button @click="rotateRow(bottomMid)">v</button>
+        <div :style="{'width': '60px'}"></div>
+        <button @click="rotateRow(bottomRight)">v</button>
+      </div>
+      <button class="spinupdown" @click="turnWholeCube(bottomLeft, bottomMid, bottomRight)">SPIN DOWN</button><br>
     </div>
-    <div :style="{display: 'flex', 'flex-direction': 'column'}">
-      <br>
-      <button @click="rotateRow(rightTop)">></button><br><br>
-      <button @click="rotateRow(rightMid)">></button><br><br>
-      <button @click="rotateRow(rightBottom)">></button>
-    </div>
-    <button @click="turnWholeCube(rightTop, rightMid, rightBottom)">SPIN RIGHT</button><br>
-  </div>
-  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-    <button @click="rotateRow(bottomLeft)">v</button>
-    <div :style="{'width': '60px'}"></div>
-    <button @click="rotateRow(bottomMid)">v</button>
-    <div :style="{'width': '60px'}"></div>
-    <button @click="rotateRow(bottomRight)">v</button>
-  </div>
-  <button @click="turnWholeCube(bottomLeft, bottomMid, bottomRight)">SPIN DOWN</button><br>
-  <br>
-  <br>
-  UP
-  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
-    <div :style="cubeFaceStyling">
-      <Square v-for="(color, index) in currentGameState.u" :color="color" :key="'u-' + index" :is-on-front="false"/><br>
-    </div>
-  </div>
+    <br>
+    <br>
+    <div class="screensection">
   
-  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-    LEFT
-  <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.l" :color="color" :key="'l-' + index" :is-on-front="false"/><br>
-  </div>
+      <Explanation :section-name="'upFace'" v-show="showExplanation.upFace" />
+
+      UP
+      <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'justify-items': 'center'}">
+        <div :style="cubeFaceStyling" @mouseover="showExplanation.upFace = true" @mouseleave="showExplanation.upFace = false">
+          <Square v-for="(color, index) in currentGameState.u" :color="color" :key="'u-' + index" :is-on-front="false"/><br>
+        </div>
+      </div>
+      LEFT RIGHT
+        <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+          <Explanation :section-name="'leftFace'" v-show="showExplanation.leftFace" />
+        <div :style="cubeFaceStyling" @mouseover="showExplanation.leftFace = true" @mouseleave="showExplanation.leftFace = false">
+          <Square v-for="(color, index) in currentGameState.l" :color="color" :key="'l-' + index" :is-on-front="false"/><br>
+        </div>
   
-  RIGHT
-  <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.r" :color="color" :key="'r-' + index" :is-on-front="false"/>
-  </div>
-</div>
-<div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+        <Explanation :section-name="'rightFace'" v-show="showExplanation.rightFace" />
+        <div :style="cubeFaceStyling" @mouseover="showExplanation.rightFace = true" @mouseleave="showExplanation.rightFace = false">
+          <Square v-for="(color, index) in currentGameState.r" :color="color" :key="'r-' + index" :is-on-front="false"/>
+        </div>
+      </div>
   DOWN
-  <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.d" :color="color" :key="'d-' + index" :is-on-front="false"/><br>
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+  
+    <div :style="cubeFaceStyling" @mouseover="showExplanation.downFace = true" @mouseleave="showExplanation.downFace = false">
+      <Explanation :section-name="'downFace'" v-show="showExplanation.downFace" />
+      <Square v-for="(color, index) in currentGameState.d" :color="color" :key="'d-' + index" :is-on-front="false"/><br>
+    </div>
+  </div>
+  BACK
+  <div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
+  
+    <div :style="cubeFaceStyling" @mouseover="showExplanation.backFace = true" @mouseleave="showExplanation.backFace = false">
+      <Explanation :section-name="'backFace'" v-show="showExplanation.backFace" />
+      <Square v-for="(color, index) in currentGameState.b" :color="color" :key="'b-' + index" :is-on-front="false"/><br>
+    </div>
   </div>
 </div>
-<div :style="{display: 'flex', 'flex-direction': 'row', 'justify-content': 'center'}">
-  BACK
-  <div :style="cubeFaceStyling">
-    <Square v-for="(color, index) in currentGameState.b" :color="color" :key="'b-' + index" :is-on-front="false"/><br>
-  </div>
 </div>
 </template>
 
 <style scoped>
-  
+  .spinupdown {
+    width: 400px;
+  }
+  .spinleftright {
+    width: 90px;
+  }
+  .screensection {
+    margin: 2em;
+  }
 </style>

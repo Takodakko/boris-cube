@@ -11,8 +11,8 @@ const squareStyling = {
     'border-width': '2px', 
     'padding': '1px', 
     'margin': '1px',
-    'height': '60px', 
-    'width': '60px', 
+    'height': '40px', 
+    'width': '40px', 
     'color': 'black'
 };
 
@@ -30,10 +30,8 @@ const frontSquareStyling = {
 
 <template>
   <div v-if="isOnFront" :style="{...frontSquareStyling, 'background-color': props.color}">
-    {{props.color}}
   </div>
   <div v-else :style="{...squareStyling, 'background-color': props.color}">
-    {{props.color}}
   </div>
 </template>
 
